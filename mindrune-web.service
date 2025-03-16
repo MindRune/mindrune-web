@@ -1,0 +1,11 @@
+[Unit]
+Description=MindRune Web App
+
+[Service]
+Type=simple
+WorkingDirectory=/root/mindrune-web
+ExecStart=/root/mindrune-web/mindrune-web.sh
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
