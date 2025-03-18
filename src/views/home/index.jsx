@@ -212,7 +212,7 @@ export default function FrontPage() {
         >
           <Flex
             justifyContent="center"
-            pt={{ base: "35%", sm: "35%", md: "35%", lg: "25%" }}
+            pt={{ base: "25%", sm: "35%", md: "35%", lg: "25%" }}
           >
             <Avatar
               src={mind_rune}
