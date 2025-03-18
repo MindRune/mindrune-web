@@ -45,7 +45,7 @@ const Roadmap = () => {
     },
     { 
       title: "The 4th Age: Enlightenment", 
-      description: "We have the technology! In The 4th Age we now have an abundance of data. The focus shifts to incentivizing plugin creation utilizing MindRune's player sourced data." 
+      description: "We have the technology! In The 4th Age we now have an abundance of data. The focus shifts to incentivizing plugin creation utilizing The MindRune Graph." 
     },
   ];
   

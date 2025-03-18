@@ -80,7 +80,7 @@ const padding = useBreakpointValue({ base: 4, md: 6, lg: 8 });
             Account Required
           </Heading>
           <Text fontSize="lg" mb={8} textAlign="center" color="#efefef">
-            Please connect your wallet to view your use the forge.
+            Please connect your wallet to use the forge.
           </Text>
         </Flex>
       </Container>

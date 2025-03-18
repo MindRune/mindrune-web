@@ -227,10 +227,10 @@ export default function FrontPage() {
             <Text {...headerTextStyle}>MindRune</Text>
           </Flex>
           <Text fontSize={{ base: "xl", sm: "2xl", md: "3xl", lg: "4xl" }} fontWeight="bold" color="#efefef" mt="-10px">
-            The OSRS Play-2-Earn Runelite Plugin.
+            The Play-2-Earn Runelite Plugin.
           </Text>
           <Text fontSize={{ base: "md", md: "xl" }} color="#efefef" px={{ base: 4, md: 0 }}>
-            Participate for free and earn $GP!
+            Contribute for free and earn rewards!
           </Text>
           <Flex mt="30px" justifyContent="center">
             <Button
@@ -322,7 +322,7 @@ export default function FrontPage() {
                 </Text>
                 <Text fontSize={{ base: "md", md: "lg" }} mt={4}>
                   MindRune is a combination of open source services that work together to
-                  create the first OSRS graph database sourced by OSRS
+                  create the first OSRS graph database built by OSRS
                   players.
                 </Text>
                 <VStack align="start" spacing={{ base: 3, md: 4 }} mt={4} px={4}>
@@ -518,24 +518,21 @@ export default function FrontPage() {
                       <Text fontWeight="bold" mb={2} fontSize={{ base: "lg", md: "xl" }}>
                         Base Point Values
                       </Text>
-                      <Text mb={1} fontSize={{ base: "sm", md: "md" }}>Combat Events: 10</Text>
-                      <Text mb={1} fontSize={{ base: "sm", md: "md" }}>XP Gains: 8</Text>
-                      <Text mb={1} fontSize={{ base: "sm", md: "md" }}>Skilling Events: 7</Text>
-                      <Text mb={1} fontSize={{ base: "sm", md: "md" }}>Item Acquisiton: 5</Text>
-                      <Text mb={1} fontSize={{ base: "sm", md: "md" }}>Character Interaction: 4</Text>
-                      <Text mb={1} fontSize={{ base: "sm", md: "md" }}>Inventory Interaction: 3</Text>
-                      <Text mb={1} fontSize={{ base: "sm", md: "md" }}>Menu Clicks: 2</Text>
+                      <Text mb={1} fontSize={{ base: "sm", md: "md" }}>Combat: Damage Dealt</Text>
+                      <Text mb={1} fontSize={{ base: "sm", md: "md" }}>XP Gains: 4pts</Text>
+                      <Text mb={1} fontSize={{ base: "sm", md: "md" }}>Skilling: 3pts</Text>
+                      <Text mb={1} fontSize={{ base: "sm", md: "md" }}>Item Acquisiton: 2pts</Text>
+                      <Text mb={1} fontSize={{ base: "sm", md: "md" }}>Character Interaction: 1pts</Text>
+                      <Text mb={1} fontSize={{ base: "sm", md: "md" }}>Inventory & Menu: 0.5pts</Text>
                     </Box>
 
                     <Box>
                       <Text fontWeight="bold" mb={2} fontSize={{ base: "lg", md: "xl" }}>
                         Key Multipliers
                       </Text>
-                      <Text mb={1} fontSize={{ base: "sm", md: "md" }}>New Player: +100 bonus</Text>
-                      <Text mb={1} fontSize={{ base: "sm", md: "md" }}>Location Data: 1.1x</Text>
-                      <Text mb={1} fontSize={{ base: "sm", md: "md" }}>Rare Items (1/500+): 1.2x</Text>
                       <Text mb={1} fontSize={{ base: "sm", md: "md" }}>Combat Damage > 10: up to 1.4x</Text>
                       <Text mb={1} fontSize={{ base: "sm", md: "md" }}>XP Gain > 50: up to 1.3x</Text>
+                      <Text mb={1} fontSize={{ base: "sm", md: "md" }}>Location included: 1.1x</Text>
                     </Box>
                   </SimpleGrid>
 
@@ -544,10 +541,10 @@ export default function FrontPage() {
                       Special Rewards
                     </Text>
                     <Text mb={1} fontSize={{ base: "sm", md: "md" }}>
-                      Quest Completion: Base points + difficulty score
+                      Quest Completion: up to 10k pts for Master Difficulty
                     </Text>
                     <Text mb={1} fontSize={{ base: "sm", md: "md" }}>
-                      Achievement Diaries & Combat Achievements
+                      Achievement Diaries & Combat Achievements: 500 pts
                     </Text>
                   </Box>
 
