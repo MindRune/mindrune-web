@@ -7,6 +7,9 @@ import {
   SimpleGrid,
   HStack,
   useColorModeValue,
+  Switch,
+  FormControl,
+  FormLabel,
 } from "@chakra-ui/react";
 import { FaNetworkWired } from "react-icons/fa";
 import ForceGraph2D from "react-force-graph-2d";
@@ -14,8 +17,10 @@ import apiService from "../services/apiService";
 
 const Neo4jGraph = ({ userId, playerId }) => {
   const [graphData, setGraphData] = useState({ nodes: [], links: [] });
+  const [originalGraphData, setOriginalGraphData] = useState({ nodes: [], links: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showTypeConnections, setShowTypeConnections] = useState(false);
   const graphRef = useRef();
   const containerRef = useRef();
   const bgColor = useColorModeValue("white", "gray.800");
@@ -46,6 +51,7 @@ const Neo4jGraph = ({ userId, playerId }) => {
       try {
         setLoading(true);
         const data = await apiService.getGraphData(userId, playerId);
+        setOriginalGraphData(data);
         setGraphData(data);
         setError(null);
       } catch (err) {
@@ -60,6 +66,62 @@ const Neo4jGraph = ({ userId, playerId }) => {
       loadGraphData();
     }
   }, [userId, playerId]);
+
+  // Function to add links between nodes of the same type
+  const addTypeConnections = (data) => {
+    const newData = JSON.parse(JSON.stringify(data)); // Deep clone to avoid mutations
+    const nodesByType = {};
+
+    // Group nodes by their label (type)
+    newData.nodes.forEach(node => {
+      if (!nodesByType[node.label]) {
+        nodesByType[node.label] = [];
+      }
+      nodesByType[node.label].push(node);
+    });
+
+    // Create links between nodes of the same type
+    const typeLinks = [];
+    Object.entries(nodesByType).forEach(([type, nodes]) => {
+      if (nodes.length > 1) {
+        // Use a lighter color for type connections
+        const typeColor = nodes[0].color + "80"; // Adding 80 for 50% opacity
+
+        // Link nodes of the same type (without creating a fully connected graph)
+        for (let i = 0; i < nodes.length - 1; i++) {
+          typeLinks.push({
+            source: nodes[i].id,
+            target: nodes[i + 1].id,
+            type: `Same ${type}`,
+            isTypeConnection: true,
+            color: typeColor
+          });
+        }
+      }
+    });
+
+    newData.links = [...newData.links, ...typeLinks];
+    return newData;
+  };
+
+  // Toggle between showing original connections and type-based connections
+  useEffect(() => {
+    if (originalGraphData.nodes.length > 0) {
+      if (showTypeConnections) {
+        const newData = addTypeConnections(originalGraphData);
+        setGraphData(newData);
+      } else {
+        setGraphData(originalGraphData);
+      }
+
+      // Add slight delay to ensure graph has rendered
+      setTimeout(() => {
+        if (graphRef.current) {
+          graphRef.current.zoomToFit(400, 40);
+        }
+      }, 500);
+    }
+  }, [showTypeConnections, originalGraphData]);
 
   // Handle resize to update dimensions
   useEffect(() => {
@@ -192,6 +254,20 @@ const Neo4jGraph = ({ userId, playerId }) => {
     >
       {dimensions.width > 0 && dimensions.height > 0 && (
         <>
+          <Box position="absolute" top={2} right={2} zIndex={10} bg="white" p={2} borderRadius="md" boxShadow="sm">
+            <FormControl display="flex" alignItems="center">
+              <FormLabel htmlFor="type-connections" mb="0" fontSize="xs">
+                Connect Same Types
+              </FormLabel>
+              <Switch 
+                id="type-connections" 
+                size="sm"
+                isChecked={showTypeConnections}
+                onChange={() => setShowTypeConnections(!showTypeConnections)}
+              />
+            </FormControl>
+          </Box>
+
           <Box flex="1" position="relative">
             <ForceGraph2D
               ref={graphRef}
@@ -200,10 +276,12 @@ const Neo4jGraph = ({ userId, playerId }) => {
               height={dimensions.height}
               nodeLabel={(node) => `${node.label}: ${node.name}`}
               nodeColor={(node) => node.color}
-              linkDirectionalArrowLength={3.5}
+              linkDirectionalArrowLength={(link) => link.isTypeConnection ? 0 : 3.5}
               linkDirectionalArrowRelPos={1}
               linkLabel={(link) => link.type}
-              linkWidth={1.5}
+              linkWidth={(link) => link.isTypeConnection ? 0.8 : 1.5}
+              linkColor={(link) => link.color || "#999"}
+              linkLineDash={(link) => link.isTypeConnection ? [2, 2] : []}
               cooldownTicks={100}
               d3Force={(d3Force) => {
                 d3Force("center", null);
