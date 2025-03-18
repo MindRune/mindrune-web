@@ -4,7 +4,7 @@
 
 # MindRune Web
 
-Visit mindrune.xyz to learn more about MindRune.
+Visit [MindRune](https://mindrune.xyz) to learn more about MindRune.
 
 Watch your MindRune graph grow and see how you stack up against the competition!
 
