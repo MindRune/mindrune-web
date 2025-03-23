@@ -5,7 +5,7 @@ import {
   MdDashboard,
   MdPerson
 } from "react-icons/md";
-import About from "views/about";
+import Home from "views/home";
 import Account from "views/account";
 import Scoreboard from "views/scoreboard";
 import Claim from "views/claim";
@@ -13,11 +13,11 @@ import Forge from "views/forge";
 
 const routes = [
   {
-    name: "About",
+    name: "Home",
     layout: "",
-    path: "/about", // Changed from "/" to "/home"
+    path: "/home", // Changed from "/" to "/home"
     icon: <Icon as={MdDashboard} width='20px' height='20px' color='inherit' />,
-    component: About
+    component: Home
   },
   {
     name: "Account",

@@ -144,7 +144,7 @@ export default function Dashboard(props) {
         <Box mx="auto" height="100%" bgColor="#202020">
           <Switch>
             {getRoutes(routes)}
-            <Redirect from="/" exact to="/account" />
+            <Redirect from="/" exact to="/home" />
           </Switch>
         </Box>
         <Box>

@@ -96,7 +96,7 @@ export default function AdminNavbar(props) {
                 fontWeight="bold"
                 onClick={onClose}
               >
-                About
+                Account
               </Link>
               {/* <Link
                 href="/scoreboard"
@@ -137,13 +137,13 @@ export default function AdminNavbar(props) {
       <Flex alignItems="center" ml={4} display={{ base: showLinks ? "flex" : "none", md: "flex" }}>
         <HStack spacing={spacing}>
           <Link
-            href="/about"
+            href="/account"
             color="#efefef"
             _hover={{ textDecoration: "none", color: "gray.300" }}
             fontSize={fontSize}
             fontWeight="bold"
           >
-            About
+            Account
           </Link>
           {/* <Link
             href="/scoreboard"

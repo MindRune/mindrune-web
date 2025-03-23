@@ -21,8 +21,8 @@ import { motion } from "framer-motion";
 import mind_rune from "../../..//src/assets/img/mind-rune.webp";
 import dragon_background from "../../..//src/assets/img/mind-altar.jpg";
 import Card from "components/card/Card.js";
-import Roadmap from "views/about/components/Roadmap";
-import GPTokenomicsCard from "views/about/components/GPTokenomicsCard";
+import Roadmap from "views/home/components/Roadmap";
+import GPTokenomicsCard from "views/home/components/GPTokenomicsCard";
 import {
   QuestionIcon,
   LockIcon,
@@ -227,10 +227,10 @@ export default function FrontPage() {
             <Text {...headerTextStyle}>MindRune</Text>
           </Flex>
           <Text fontSize={{ base: "xl", sm: "2xl", md: "3xl", lg: "4xl" }} fontWeight="bold" color="#efefef" mt="-10px">
-            The Play-2-Earn Runelite Plugin.
+            The OSRS Graph Database.
           </Text>
           <Text fontSize={{ base: "md", md: "xl" }} color="#efefef" px={{ base: 4, md: 0 }}>
-            Contribute for free and earn rewards!
+            Register your account and grow your player graph!
           </Text>
           <Flex mt="30px" justifyContent="center">
             <Button
@@ -328,15 +328,11 @@ export default function FrontPage() {
                 <VStack align="start" spacing={{ base: 3, md: 4 }} mt={4} px={4}>
                   <FeatureItem 
                     title="The MindRune Plugin"
-                    description="The MindRune plugin captures playdata (memories) and transmits them to The MindRune Graph. Points are awarded to players based on the quality and value of the memory which tracks contributions to The MindRune Graph."
+                    description="The MindRune plugin captures playdata (memories) and transmits them to The MindRune Graph. As your MindRune graph gorws, new insights become possible!"
                   />
                   <FeatureItem 
                     title="The MindRune Graph"
                     description="A next-generation data repository for all things OSRS. Graph databases provide enhanced capabilities for discovery and connections, enabling brand new features and plugins that couldn't exist before."
-                  />
-                  <FeatureItem 
-                    title="The MindRune Memory Minter"
-                    description="Each memory transmitted to MindRune is minted as a digital memory in your web3 wallet. Players remain in control of their memories and are free to trade them or forge them into new collectibles."
                   />
                   <FeatureItem 
                     title="The MindRune API"
@@ -363,7 +359,7 @@ export default function FrontPage() {
                   <VStack spacing={{ base: 3, md: 4 }} align="flex-start" w="100%">
                     <StepItem 
                       icon={LockIcon} 
-                      text="Connect to MindRune with your desired wallet."
+                      text="Connect to MindRune with your desired web3 wallet."
                     />
                     <StepItem 
                       icon={InfoIcon} 
@@ -388,11 +384,11 @@ export default function FrontPage() {
                     w="100%"
                   >
                     <Text fontSize={{ base: "lg", md: "xl" }} fontWeight="semibold" color="#333333">
-                      That's all! You're now earning points and capturing your
+                      That's all! You're now ecapturing your
                       play data!
                     </Text>
                     <Text fontSize={{ base: "md", md: "lg" }} color="#333333" mt={2}>
-                      Visit your account to explore your gameplay and points.
+                      Visit your account to explore your gameplay.
                     </Text>
                   </Box>
                 </VStack>
@@ -447,21 +443,12 @@ export default function FrontPage() {
                   Looking Forward
                 </Text>
                 <Text {...paragraphStyle}>
-                  The goal of MindRune is simple: Grow The MindRune Graph with gameplay data and general OSRS knowledge. 
+                  The goal of MindRune is simple: Grow The MindRune Graph with gameplay data and general OSRS knowledge and allow anyone to query the data. 
                 </Text>
                 <Text {...paragraphStyle} mt={4}>
                   The MindRune Graph uses a substrate purpose-built
                   for making connections which unlocks new plugins/apps that were not possible before. The evolution of MindRune is intended to be split
-                  into 4 distinct ages. Each age signals the dawn of new incentives and
-                  themes to encourage new memories and unlocking new connections.
-                </Text>
-                <Text {...paragraphStyle} mt={4}>
-                  The Gold Pieces($GP) token can only be earned by contributing
-                  real-time player data to the MindRune Graph. Furthermore, $GP
-                  will be used to measure community involvement and unlock
-                  advanced and exclusive features. The majority of the $GP supply
-                  will be reserved for future Seasons and Events designed to
-                  encouraged focused data collection.
+                  into 3 distinct ages. Each age signals the progession of what MindRune is able to accomplish.
                 </Text>
               </Box>
             </GridItem>
@@ -473,7 +460,7 @@ export default function FrontPage() {
       <ParallaxBackground bgPos="10% 80%" />
 
       {/* Tokenomics Section */}
-      <MotionBox
+      {/* <MotionBox
         id="section3"
         w="100%"
         textAlign="center"
@@ -563,10 +550,10 @@ export default function FrontPage() {
             </GridItem>
           </Grid>
         </Container>
-      </MotionBox>
+      </MotionBox> */}
 
       {/* Fourth Parallax */}
-      <ParallaxBackground bgPos="10% 80%" />
+      {/* <ParallaxBackground bgPos="10% 80%" /> */}
 
       {/* FAQ Section */}
       <MotionBox
@@ -585,7 +572,7 @@ export default function FrontPage() {
           FAQ
         </Text>
 
-        <VStack spacing={{ base: 4, md: 6 }} maxW="800px" w="100%" mx="auto" pb={{ base: 4, md: 6 }} pb={{ base: 'xs', md: 6 }}>
+        <VStack spacing={{ base: 4, md: 6 }} maxW="800px" w="100%" mx="auto" pb={{ base: 'xs', md: 6 }}>
           <FaqItem 
             icon={QuestionIcon} 
             question="What personal data does MindRune capture?"
@@ -593,18 +580,13 @@ export default function FrontPage() {
           />
           <FaqItem 
             icon={LockIcon} 
-            question="Why do I have to sign in with a crypto wallet to participate?"
-            answer="By using your web3 wallet, MindRune eliminates the need for an email address and password. This means no sensitive data is ever stored on MindRune servers. By using your web3 wallet, you're able to claim $GP in the future."
-          />
-          <FaqItem 
-            icon={TimeIcon} 
-            question="Why does there need to be a token?"
-            answer="The $GP token is meant to quantify meaningful contributions to The MindRune Graph and is not meant for speculative value. Token earners are able to signal their contribution to the collective and gain access to features they helped create."
+            question="Why do I have to sign in with a web3 wallet to participate?"
+            answer="By using your web3 wallet, MindRune eliminates the need for an email address and password. This means no sensitive data is ever stored on MindRune servers."
           />
           <FaqItem 
             icon={InfoIcon} 
             question="What's the point of all this?"
-            answer="The simple answer is fun! The memories stored by MindRune will be used to create exciting future experiences for Old School Runescape players. The MindRune Team are passionate OSRS players and dedicated to the longevity of the game!"
+            answer="The goal of MindRune is to create a powerful graph database for all things OSRS! The memories stored by MindRune will be used to create exciting future experiences and tools for Old School Runescape players. The MindRune Team are passionate OSRS players and dedicated to the longevity of the game!"
           />
         </VStack>
       </MotionBox>

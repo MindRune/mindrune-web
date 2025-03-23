@@ -33,19 +33,15 @@ const Roadmap = () => {
     {
       title: "The 1st Age: Emergence",
       description:
-        `Tell your friends! Beta players are invited to give feedback and report bugs. Sizeable contributions will earn the right to claim an exclusive reward yet to be revealed. `,
+        `Tell your friends! Beta players are invited to give feedback and report bugs. Expect semi-frequent changes as the MindRune team irons out any data kinks and new tools come online.`,
     },
     { 
       title: "The 2nd Age: Exploration", 
-      description: "Let the games begin! Points earned during this age will begin to count towards the rewards you will be able to claim. As more memories are created, new connections give way to new kinds of insights." 
+      description: "Let the games begin! As more memories are created, new connections give way to new kinds of insights. As more data is collected, new insights will be able to be revealed." 
     },
     { 
-      title: "The 3rd Age: Exhibition", 
-      description: "The competition heats up! The 3rd age ushers in Seasons and Events; short duration competitions to earn excellerated points in specific categories of game play. (PvP, Skilling, Questing, etc.)" 
-    },
-    { 
-      title: "The 4th Age: Enlightenment", 
-      description: "We have the technology! In The 4th Age we now have an abundance of data. The focus shifts to incentivizing plugin creation utilizing The MindRune Graph." 
+      title: "The 3rd Age: Enlightenment", 
+      description: "We have the technology! In The 3rd Age we now have an abundance of data. The focus shifts to buildin features and APIs that utilize The MindRune Graph." 
     },
   ];
   
