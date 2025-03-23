@@ -206,7 +206,7 @@ const AccountDataComponent = ({ accountData, userId, onAccountDataUpdate }) => {
               </Flex>
 
               {/* Wallet info - hidden on mobile, visible on md and up */}
-              <Text 
+              {/* <Text 
                 fontSize={{ base: "xs", md: "sm" }} 
                 color="#efefef"
                 textAlign="left"
@@ -214,10 +214,10 @@ const AccountDataComponent = ({ accountData, userId, onAccountDataUpdate }) => {
               >
                 <strong>Wallet:</strong> {userId?.substring(0, 6)}...
                 {userId?.substring(userId.length - 6)}
-              </Text>
+              </Text> */}
               
               {/* Points info - visible only on mobile in place of wallet */}
-              <Flex 
+              {/* <Flex 
                 align="center"
                 display={{ base: "flex", md: "none" }}
                 fontSize="xs"
@@ -234,11 +234,11 @@ const AccountDataComponent = ({ accountData, userId, onAccountDataUpdate }) => {
                     ? formatNumberWithSpaces(accountData?.points)
                     : "0"}
                 </Text>
-              </Flex>
+              </Flex> */}
             </Box>
           </Flex>
 
-          <Stat 
+          {/* <Stat 
             textAlign="right"
             flexShrink={0} 
             mt={{ base: 0, md: "10px" }}
@@ -272,7 +272,7 @@ const AccountDataComponent = ({ accountData, userId, onAccountDataUpdate }) => {
                   : "0"}
               </StatNumber>
             </Flex>
-          </Stat>
+          </Stat> */}
         </Flex>
       </CardBody>
       

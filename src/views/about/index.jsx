@@ -21,8 +21,8 @@ import { motion } from "framer-motion";
 import mind_rune from "../../..//src/assets/img/mind-rune.webp";
 import dragon_background from "../../..//src/assets/img/mind-altar.jpg";
 import Card from "components/card/Card.js";
-import Roadmap from "views/home/components/Roadmap";
-import GPTokenomicsCard from "views/home/components/GPTokenomicsCard";
+import Roadmap from "views/about/components/Roadmap";
+import GPTokenomicsCard from "views/about/components/GPTokenomicsCard";
 import {
   QuestionIcon,
   LockIcon,

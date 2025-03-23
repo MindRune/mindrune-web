@@ -96,9 +96,9 @@ export default function AdminNavbar(props) {
                 fontWeight="bold"
                 onClick={onClose}
               >
-                Account
+                About
               </Link>
-              <Link
+              {/* <Link
                 href="/scoreboard"
                 color="#efefef"
                 _hover={{ textDecoration: "none", color: "gray.300" }}
@@ -127,7 +127,7 @@ export default function AdminNavbar(props) {
                 onClick={onClose}
               >
                 Forge
-              </Link>
+              </Link> */}
             </VStack>
           </DrawerBody>
         </DrawerContent>
@@ -137,15 +137,15 @@ export default function AdminNavbar(props) {
       <Flex alignItems="center" ml={4} display={{ base: showLinks ? "flex" : "none", md: "flex" }}>
         <HStack spacing={spacing}>
           <Link
-            href="/account"
+            href="/about"
             color="#efefef"
             _hover={{ textDecoration: "none", color: "gray.300" }}
             fontSize={fontSize}
             fontWeight="bold"
           >
-            Account
+            About
           </Link>
-          <Link
+          {/* <Link
             href="/scoreboard"
             color="#efefef"
             _hover={{ textDecoration: "none", color: "gray.300" }}
@@ -171,7 +171,7 @@ export default function AdminNavbar(props) {
             fontWeight="bold"
           >
             Forge
-          </Link>
+          </Link> */}
         </HStack>
       </Flex>
       

@@ -38,7 +38,7 @@ export default function Footer() {
         >
           &copy; {1900 + new Date().getYear()}
           <Text as="span" fontWeight="500" mx="4px">
-            RuneBoy. Open-Sourced on
+            MindRune. Open-Sourced on
             <Link
               mx={{ base: "1px", sm: "3px" }}
               color={textColor}

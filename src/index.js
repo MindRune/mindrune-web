@@ -15,7 +15,7 @@ ReactDOM.render(
           <Router>
             <Switch>
               <Route path="/" component={AdminLayout} />
-              <Redirect from="*" to="/home" />
+              <Redirect from="*" to="/account" />
             </Switch>
           </Router>
       </AccountProvider>

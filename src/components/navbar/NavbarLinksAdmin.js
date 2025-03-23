@@ -95,7 +95,7 @@ export default function HeaderLinks(props) {
           </Box>
         )}
         
-        {isAuthenticated && (
+        {/* {isAuthenticated && (
           <Flex
             bg="#333333"
             display="flex"
@@ -155,9 +155,9 @@ export default function HeaderLinks(props) {
               </Text>
             </Text>
           </Flex>
-        )}
+        )} */}
         
-        {isAuthenticated && (
+        {/* {isAuthenticated && (
           <Flex
             bg="#333333"
             display="flex"
@@ -196,7 +196,7 @@ export default function HeaderLinks(props) {
               </Text>
             </Text>
           </Flex>
-        )}
+        )} */}
       </HStack>
       
       <ConnectButton />

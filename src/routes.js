@@ -5,7 +5,7 @@ import {
   MdDashboard,
   MdPerson
 } from "react-icons/md";
-import Home from "views/home";
+import About from "views/about";
 import Account from "views/account";
 import Scoreboard from "views/scoreboard";
 import Claim from "views/claim";
@@ -13,11 +13,11 @@ import Forge from "views/forge";
 
 const routes = [
   {
-    name: "Home",
+    name: "About",
     layout: "",
-    path: "/home", // Changed from "/" to "/home"
+    path: "/about", // Changed from "/" to "/home"
     icon: <Icon as={MdDashboard} width='20px' height='20px' color='inherit' />,
-    component: Home
+    component: About
   },
   {
     name: "Account",
@@ -26,27 +26,27 @@ const routes = [
     icon: <Icon as={MdPerson} width='20px' height='20px' color='inherit' />,
     component: Account
   },
-  {
-    name: "Scoreboard",
-    layout: "",
-    path: "/scoreboard",
-    icon: <Icon as={MdBarChart} width='20px' height='20px' color='inherit' />,
-    component: Scoreboard
-  },
-  {
-    name: "Claim",
-    layout: "",
-    path: "/claim",
-    icon: <Icon as={MdBarChart} width='20px' height='20px' color='inherit' />,
-    component: Claim
-  },
-  {
-    name: "Forge",
-    layout: "",
-    path: "/forge",
-    icon: <Icon as={MdBarChart} width='20px' height='20px' color='inherit' />,
-    component: Forge
-  }
+  // {
+  //   name: "Scoreboard",
+  //   layout: "",
+  //   path: "/scoreboard",
+  //   icon: <Icon as={MdBarChart} width='20px' height='20px' color='inherit' />,
+  //   component: Scoreboard
+  // },
+  // {
+  //   name: "Claim",
+  //   layout: "",
+  //   path: "/claim",
+  //   icon: <Icon as={MdBarChart} width='20px' height='20px' color='inherit' />,
+  //   component: Claim
+  // },
+  // {
+  //   name: "Forge",
+  //   layout: "",
+  //   path: "/forge",
+  //   icon: <Icon as={MdBarChart} width='20px' height='20px' color='inherit' />,
+  //   component: Forge
+  // }
 ];
 
 export default routes;
