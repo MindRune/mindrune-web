@@ -1,4 +1,5 @@
 import React from "react";
+
 import {
   Box,
   Button,
@@ -13,11 +14,22 @@ import {
   CardBody,
   useColorModeValue,
 } from "@chakra-ui/react";
+
 import { FaKhanda } from "react-icons/fa";
+
 import Neo4jGraph from "./Neo4jGraph";
 
-const GraphExplorerComponent = ({ userId, players, selectedPlayerId, onSelectPlayer }) => {
+const GraphExplorerComponent = ({
+  userId,
+
+  players,
+
+  selectedPlayerId,
+
+  onSelectPlayer,
+}) => {
   const borderColor = useColorModeValue("gray.200", "gray.700");
+
   const secondaryTextColor = useColorModeValue("gray.600", "gray.400");
 
   return (
@@ -34,6 +46,7 @@ const GraphExplorerComponent = ({ userId, players, selectedPlayerId, onSelectPla
           height="600px"
         >
           {/* Player selection sidebar */}
+
           <Box
             width={{ base: "100%", lg: "250px" }}
             p={4}
@@ -50,22 +63,15 @@ const GraphExplorerComponent = ({ userId, players, selectedPlayerId, onSelectPla
               <ListItem>
                 <Button
                   leftIcon={<FaKhanda />}
-                  colorScheme={
-                    selectedPlayerId === null ? "#202020" : "gray"
-                  }
-                  variant={
-                    selectedPlayerId === null ? "solid" : "ghost"
-                  }
+                  colorScheme={selectedPlayerId === null ? "#202020" : "gray"}
+                  variant={selectedPlayerId === null ? "solid" : "ghost"}
                   size="md"
                   width="100%"
                   justifyContent="flex-start"
                   borderRadius="md"
                   onClick={() => onSelectPlayer(null)}
                   _hover={{
-                    bg:
-                      selectedPlayerId === null
-                        ? "#202020"
-                        : "#202020",
+                    bg: selectedPlayerId === null ? "#202020" : "#202020",
                   }}
                   color="#efefef"
                 >
@@ -81,14 +87,10 @@ const GraphExplorerComponent = ({ userId, players, selectedPlayerId, onSelectPla
                     <Button
                       leftIcon={<FaKhanda color="#efefef" />}
                       colorScheme={
-                        selectedPlayerId === player.id
-                          ? "#202020"
-                          : "gray"
+                        selectedPlayerId === player.id ? "#202020" : "gray"
                       }
                       variant={
-                        selectedPlayerId === player.id
-                          ? "solid"
-                          : "ghost"
+                        selectedPlayerId === player.id ? "solid" : "ghost"
                       }
                       size="md"
                       width="100%"
@@ -108,12 +110,9 @@ const GraphExplorerComponent = ({ userId, players, selectedPlayerId, onSelectPla
                             : "#202020",
                       }}
                     >
-                      <Flex
-                        justify="space-between"
-                        width="100%"
-                        align="center"
-                      >
+                      <Flex justify="space-between" width="100%" align="center">
                         <Text color="#efefef">{player.name}</Text>
+
                         {player.combatLevel && (
                           <Badge ml={2} colorScheme="green">
                             Lvl {player.combatLevel}
@@ -125,15 +124,14 @@ const GraphExplorerComponent = ({ userId, players, selectedPlayerId, onSelectPla
                 ))
               ) : (
                 <Box textAlign="center" py={4}>
-                  <Text color={secondaryTextColor}>
-                    No players found
-                  </Text>
+                  <Text color={secondaryTextColor}>No players found</Text>
                 </Box>
               )}
             </List>
           </Box>
 
           {/* Graph visualization */}
+
           <Box flex="1" height="100%">
             <Neo4jGraph
               userId={userId}

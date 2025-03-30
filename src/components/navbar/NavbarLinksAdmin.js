@@ -6,7 +6,7 @@ import {
   HStack
 } from "@chakra-ui/react";
 import React, { useState, useContext, useEffect } from "react";
-import ConnectButton from "./ConnectButton";
+import LoginButton from "./LoginButton";
 import axios from "axios";
 import { AccountContext } from "../../AccountContext";
 import GP from "../../..//src/assets/img/$GP.webp";
@@ -29,31 +29,6 @@ export default function HeaderLinks(props) {
   const margin = useBreakpointValue({ base: "2px", md: "6px" });
   const iconSize = useBreakpointValue({ base: "16px", md: "20px" });
   const spacing = useBreakpointValue({ base: "1", md: "2" });
-
-  useEffect(() => {
-    // Check if user is authenticated
-    const token = localStorage.getItem("token");
-    setIsAuthenticated(!!token && !!userAccount);
-    
-    async function fetchData() {
-      if (!userAccount) return;
-      
-      try {
-        let response = await axios.get(
-          `${process.env.REACT_APP_API_HOST}/osrs/scoreboard/${userAccount}`
-        );
-
-        if (response.data && response.data.data && response.data.data.length > 0) {
-          setUserInfo(response.data.data[0]);
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-        // We don't set user_info to null here so previous data isn't lost on error
-      }
-    }
-
-    fetchData();
-  }, [userAccount, saved]);
 
   return (
     <Flex
@@ -199,7 +174,7 @@ export default function HeaderLinks(props) {
         )} */}
       </HStack>
       
-      <ConnectButton />
+      <LoginButton />
     </Flex>
   );
 }

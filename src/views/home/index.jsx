@@ -227,10 +227,10 @@ export default function FrontPage() {
             <Text {...headerTextStyle}>MindRune</Text>
           </Flex>
           <Text fontSize={{ base: "xl", sm: "2xl", md: "3xl", lg: "4xl" }} fontWeight="bold" color="#efefef" mt="-10px">
-            The OSRS Graph Database.
+            The Ultimate OSRS gameplay tracker.
           </Text>
           <Text fontSize={{ base: "md", md: "xl" }} color="#efefef" px={{ base: 4, md: 0 }}>
-            Register your account and grow your player graph!
+            Track your gameplay and grow your player graph!
           </Text>
           <Flex mt="30px" justifyContent="center">
             <Button

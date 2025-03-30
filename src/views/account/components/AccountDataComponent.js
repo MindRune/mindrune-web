@@ -1,32 +1,15 @@
 import React, { useState, useEffect } from "react";
 import {
   Box,
-  Button,
+  Avatar,
   Flex,
-  Text,
   Heading,
-  Icon,
   Card,
   CardBody,
-  Stat,
-  StatLabel,
-  StatNumber,
   useToast,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  ModalCloseButton,
   useDisclosure,
-  FormControl,
-  FormLabel,
-  Input,
 } from "@chakra-ui/react";
-import { FaEdit, FaMedal } from "react-icons/fa";
 import { Filter } from "glin-profanity";
-import OSRSAvatar from "components/OSRSAvatar";
 import apiService from "../services/apiService";
 
 // Helper function for number formatting
@@ -38,7 +21,7 @@ const AccountDataComponent = ({ accountData, userId, onAccountDataUpdate }) => {
   const [newAlias, setNewAlias] = useState("");
   const { isOpen, onOpen, onClose } = useDisclosure();
   const toast = useToast();
-  
+
   // Update newAlias when accountData changes
   useEffect(() => {
     if (accountData?.alias) {
@@ -127,7 +110,7 @@ const AccountDataComponent = ({ accountData, userId, onAccountDataUpdate }) => {
       });
     }
   };
-  
+
   return (
     <Card
       bgColor="rgba(32, 32, 32, 0.85)"
@@ -149,16 +132,14 @@ const AccountDataComponent = ({ accountData, userId, onAccountDataUpdate }) => {
           mt={{ base: 0, md: "-10px" }}
           flexWrap={{ base: "wrap", md: "nowrap" }}
         >
-          <Flex 
-            align="center" 
+          <Flex
+            align="center"
             direction="row"
             textAlign="left"
             width={{ base: "100%", md: "auto" }}
             mb={{ base: 3, md: 0 }}
           >
             <Box
-              width="65px"
-              height="65px"
               borderRadius="full"
               overflow="hidden"
               border="4px solid #202020"
@@ -168,156 +149,27 @@ const AccountDataComponent = ({ accountData, userId, onAccountDataUpdate }) => {
               justifyContent="center"
               boxShadow="md"
               flexShrink={0}
+              mt="auto"
+              mb="auto"
             >
-              <OSRSAvatar account={userId} size={55} />
+              <Avatar src={accountData.img} alt="profile" w="75px" h="75px"/>
             </Box>
 
-            <Box>
-              <Flex 
-                align="center"
-                mb={1}
-                flexDir="row"
-              >
-                <Heading 
-                  as="h2" 
-                  size={{ base: "md", md: "lg" }} 
-                  mr={2}
-                  fontSize={{ base: "22px", sm: "30px", md: "40px", lg: "50px" }}
-                  lineHeight="1.2"
-                  isTruncated
-                  maxW={{ base: "160px", sm: "250px", md: "100%" }}
-                >
-                  {accountData?.alias ||
-                    `${userId?.substring(0, 6)}...${userId?.substring(
-                      userId.length - 6
-                    )}`}
-                </Heading>
-                <Button
-                  leftIcon={<FaEdit />}
-                  size="sm"
-                  colorScheme="blue"
-                  variant="ghost"
-                  onClick={onOpen}
-                  p={{ base: 1, md: 2 }}
-                  minW="auto"
-                >
-                  <Box display={{ base: "none", sm: "block" }}>Edit</Box>
-                </Button>
-              </Flex>
-
-              {/* Wallet info - hidden on mobile, visible on md and up */}
-              {/* <Text 
-                fontSize={{ base: "xs", md: "sm" }} 
-                color="#efefef"
-                textAlign="left"
-                display={{ base: "none", md: "block" }}
-              >
-                <strong>Wallet:</strong> {userId?.substring(0, 6)}...
-                {userId?.substring(userId.length - 6)}
-              </Text> */}
-              
-              {/* Points info - visible only on mobile in place of wallet */}
-              {/* <Flex 
-                align="center"
-                display={{ base: "flex", md: "none" }}
-                fontSize="xs"
-                color="#efefef"
-              >
-                <Icon
-                  as={FaMedal}
-                  color="yellow.500"
-                  mr={1}
-                  boxSize="14px"
-                />
-                <Text fontSize="16px">
-                  <strong>Points:</strong> {accountData?.points
-                    ? formatNumberWithSpaces(accountData?.points)
-                    : "0"}
-                </Text>
-              </Flex> */}
-            </Box>
+            <Heading
+              as="h2"
+              size={{ base: "md", md: "lg" }}
+              mr={2}
+              fontSize={{ base: "22px", sm: "30px", md: "40px", lg: "50px" }}
+              lineHeight="1.2"
+            >
+              {accountData?.alias ||
+                `${userId?.substring(0, 6)}...${userId?.substring(
+                  userId.length - 6
+                )}`}
+            </Heading>
           </Flex>
-
-          {/* <Stat 
-            textAlign="right"
-            flexShrink={0} 
-            mt={{ base: 0, md: "10px" }}
-            ml={{ base: "auto", md: 0 }}
-            marginRight={{ base: "5px", md: 0 }}
-            display={{ base: "none", md: "block" }} // Hide on mobile
-          >
-            <StatLabel 
-              fontSize={{ base: "16px", sm: "20px", md: "30px" }} 
-              fontWeight="bold"
-            >
-              Total Points
-            </StatLabel>
-            <Flex 
-              align="center" 
-              justify="flex-end"
-            >
-              <Icon
-                as={FaMedal}
-                color="yellow.500"
-                mr={1}
-                boxSize={{ base: "20px", sm: "24px", md: "36px" }}
-                mt={{ base: "-2px", md: "-10px" }}
-              />
-              <StatNumber 
-                fontSize={{ base: "22px", sm: "28px", md: "35px" }} 
-                mt={{ base: "-2px", md: "-10px" }}
-              >
-                {accountData?.points
-                  ? formatNumberWithSpaces(accountData?.points)
-                  : "0"}
-              </StatNumber>
-            </Flex>
-          </Stat> */}
         </Flex>
       </CardBody>
-      
-      {/* Edit Alias Modal */}
-      <Modal isOpen={isOpen} onClose={onClose} isCentered>
-        <ModalOverlay />
-        <ModalContent bgColor="#333333" color="#efefef" mx={4}>
-          <ModalHeader>Update Profile</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <FormControl>
-              <FormLabel>Display Name</FormLabel>
-              <Input
-                value={newAlias}
-                onChange={(e) => {
-                  // Limit input to 12 characters
-                  if (e.target.value.length <= 12) {
-                    setNewAlias(e.target.value);
-                  }
-                }}
-                placeholder="Enter your display name"
-                maxLength={12} // HTML attribute to limit input length
-              />
-              <Text fontSize="xs" color="gray.500" mt={1} textAlign="right">
-                {newAlias.length}/12 characters
-              </Text>
-            </FormControl>
-          </ModalBody>
-
-          <ModalFooter>
-            <Button
-              variant="ghost"
-              mr={3}
-              onClick={onClose}
-              color="#efefef"
-              border="1px solid #efefef"
-            >
-              Cancel
-            </Button>
-            <Button colorScheme="green" onClick={handleUpdateAlias}>
-              Save
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
     </Card>
   );
 };
