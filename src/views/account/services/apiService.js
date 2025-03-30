@@ -147,35 +147,54 @@ const apiService = {
       const params = { account: userId };
 
       if (playerId) {
-        // Single player mode with optimized query using CALL {} UNION
+        // Single player mode with optimized query
         params.playerId = playerId;
+
+        // First, let's check if the player exists
+        const playerCheckQuery = `
+          MATCH (p:Player {account: $account, playerId: $playerId})
+          RETURN p.playerId AS id, p.name AS name, p.combatLevel AS combatLevel
+        `;
+
+        const playerResult = await apiService.executeQuery(
+          playerCheckQuery,
+          params
+        );
+
+        if (!playerResult.records || playerResult.records.length === 0) {
+          console.error(
+            `Player with ID ${playerId} not found for account ${userId}`
+          );
+          return { nodes: [], links: [] };
+        }
+
+        // Modified query to better match the multi-player approach and capture all player nodes with no event limit
         query = `
-        // First collect the player
+        // First match the specific player
         MATCH (p:Player {account: $account, playerId: $playerId})
         
         // Use CALL blocks for better parallel execution
         CALL {
           WITH p
           
-          // Collect incoming relationships in one operation
+          // Collect ALL incoming relationships
           CALL {
             WITH p
             MATCH (e)-[r]->(p)
-            WHERE type(r) IN ["PERFORMED_BY", "GAINED_BY", "RECEIVED_BY", "TARGETED"]
+            // For hit splats, ensure the targetPlayerId matches to prevent cross-player hits
+            WHERE NOT (e:HitSplat AND e.direction = "incoming") OR e.targetPlayerId = p.playerId
             RETURN collect(DISTINCT e) AS incoming_events
           }
           
-          // Collect outgoing relationships in one operation
+          // Collect ALL outgoing relationships
           CALL {
             WITH p
             MATCH (p)-[r]->(e)
-            WHERE type(r) IN ["PERFORMED", "KILLED"]
             RETURN collect(DISTINCT e) AS outgoing_events
           }
           
-          // Combine all events
           WITH p, incoming_events + outgoing_events AS player_events
-          RETURN player_events[0..300] AS limited_events
+          RETURN player_events AS limited_events
         }
         
         // Collect events with the original player
@@ -204,7 +223,7 @@ const apiService = {
             WITH events, players
             UNWIND events AS e
             MATCH (n2)-[r2]->(e)
-            WHERE NOT n2:Player OR NOT any(p IN players WHERE n2.playerId = p.playerId)
+            WHERE n2:Player OR NOT any(p IN players WHERE n2.playerId = p.playerId)
             RETURN collect(DISTINCT n2) AS in_entities, collect(DISTINCT r2) AS in_rels
           }
           
@@ -218,34 +237,22 @@ const apiService = {
 
         if (!result.records || result.records.length === 0) {
           // If no results, create a placeholder graph with just the player
-          const playerQuery = `
-            MATCH (p:Player {account: $account, playerId: $playerId})
-            RETURN p.playerId AS id, p.name AS name, p.combatLevel AS combatLevel
-          `;
-          const playerResult = await apiService.executeQuery(
-            playerQuery,
-            params
-          );
-
-          if (playerResult.records && playerResult.records.length > 0) {
-            const playerRecord = playerResult.records[0];
-            return {
-              nodes: [
-                {
-                  id: `player-${playerRecord.id}`,
-                  label: "Player",
-                  name: playerRecord.name || playerRecord.id,
-                  color: "#000000",
-                  properties: {
-                    combatLevel: playerRecord.combatLevel,
-                    playerId: playerRecord.id,
-                  },
+          const playerRecord = playerResult.records[0];
+          return {
+            nodes: [
+              {
+                id: `player-${playerRecord.id}`,
+                label: "Player",
+                name: playerRecord.name || playerRecord.id,
+                color: "#000000",
+                properties: {
+                  combatLevel: playerRecord.combatLevel,
+                  playerId: playerRecord.id,
                 },
-              ],
-              links: [],
-            };
-          }
-          return { nodes: [], links: [] };
+              },
+            ],
+            links: [],
+          };
         }
 
         // Process single player result with improved processing
