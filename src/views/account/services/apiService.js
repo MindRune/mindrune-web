@@ -323,32 +323,38 @@ const apiService = {
           console.log("Using unified query approach for all players");
 
           query = `
-          // First match all players for this account
-          MATCH (p:Player {account: $account})
-          
-          // Collect all players and process them in parallel
-          WITH collect(p) AS all_players
-          
-          CALL {
-            WITH all_players
-            UNWIND all_players AS p
-            
-            // Get player events efficiently with CALL blocks
-            CALL {
-              WITH p
-              MATCH (e)-[]->(p)
-              RETURN collect(DISTINCT e) AS in_events
-            }
-            
-            CALL {
-              WITH p
-              MATCH (p)-[]->(e)
-              RETURN collect(DISTINCT e) AS out_events
-            }
-            
-            WITH p, in_events + out_events AS player_events
-            RETURN collect({player: p, events: player_events}) AS player_data
-          }
+// First match all players for this account
+MATCH (p:Player {account: $account})
+
+// Collect all players and process them in parallel
+WITH collect(p) AS all_players
+
+CALL {
+  WITH all_players
+  UNWIND all_players AS p
+  
+  // Get player events efficiently with CALL blocks
+  CALL {
+    WITH p
+    // For incoming events, explicitly filter hit splats to ensure proper targeting
+    MATCH (e)-[r]->(p)
+    WHERE type(r) IN ["PERFORMED_BY", "GAINED_BY", "RECEIVED_BY", "TARGETED"]
+    WITH e, p, r
+    // For hit splats, ensure the targetPlayerId matches
+    WHERE NOT (e:HitSplat AND e.direction = "incoming") OR e.targetPlayerId = p.playerId
+    RETURN collect(DISTINCT e) AS in_events
+  }
+  
+  CALL {
+    WITH p
+    MATCH (p)-[r]->(e)
+    WHERE type(r) IN ["PERFORMED", "KILLED"]
+    RETURN collect(DISTINCT e) AS out_events
+  }
+  
+  WITH p, in_events + out_events AS player_events
+  RETURN collect({player: p, events: player_events}) AS player_data
+}
           
           // Process all events and relationships
           WITH player_data
@@ -1047,6 +1053,20 @@ function processGraphData(record, specificPlayerId = null) {
       if (sourceNode.label === "Player" && targetNode.playerIds) {
         // This is a player->event link, make sure this player is associated with this event
         const playerId = sourceNode.properties.playerId.toString();
+
+        // Extra check for hit splats - only connect if this player is the actual target
+        if (
+          targetNode.properties.eventType === "HIT_SPLAT" &&
+          targetNode.properties.direction === "incoming"
+        ) {
+          // For incoming hit splats, verify this player is the actual target
+          const targetPlayerId = targetNode.properties.targetPlayerId;
+          if (targetPlayerId && targetPlayerId.toString() !== playerId) {
+            // This hit splat is targeting a different player, don't connect
+            return;
+          }
+        }
+
         if (!targetNode.playerIds.includes(playerId)) {
           // This player should not be connected to this event
           return;
@@ -1054,6 +1074,20 @@ function processGraphData(record, specificPlayerId = null) {
       } else if (targetNode.label === "Player" && sourceNode.playerIds) {
         // This is an event->player link, make sure this player is associated with this event
         const playerId = targetNode.properties.playerId.toString();
+
+        // Extra check for hit splats - only connect if this player is the actual target
+        if (
+          sourceNode.properties.eventType === "HIT_SPLAT" &&
+          sourceNode.properties.direction === "incoming"
+        ) {
+          // For incoming hit splats, verify this player is the actual target
+          const targetPlayerId = sourceNode.properties.targetPlayerId;
+          if (targetPlayerId && targetPlayerId.toString() !== playerId) {
+            // This hit splat is targeting a different player, don't connect
+            return;
+          }
+        }
+
         if (!sourceNode.playerIds.includes(playerId)) {
           // This player should not be connected to this event
           return;
