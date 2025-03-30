@@ -258,14 +258,6 @@ const apiService = {
         // Process single player result with improved processing
         return processGraphData(result.records[0], playerId);
       } else {
-        // Multi-player mode with optimized query
-        console.log(
-          "MULTI-PLAYER MODE: Starting multi-player graph data fetch for account",
-          userId
-        );
-
-        // Optimized check if any events exist
-        console.log("Checking if any events exist for this account");
         const accountEventsQuery = `
           MATCH (p:Player {account: $account})
           CALL {
@@ -282,16 +274,6 @@ const apiService = {
           { account: userId }
         );
 
-        if (
-          accountEventsResult.records &&
-          accountEventsResult.records.length > 0
-        ) {
-          const eventCount = accountEventsResult.records[0].totalEventCount;
-          console.log(`Total events found for this account: ${eventCount}`);
-        }
-
-        // Get all players for this account
-        console.log("Running player query with account:", userId);
         const playersQuery = `
           MATCH (p:Player {account: $account})
           RETURN p
@@ -303,21 +285,10 @@ const apiService = {
         );
 
         if (!playersResult.records || playersResult.records.length === 0) {
-          console.log("No players found for this account");
           return { nodes: [], links: [] };
         }
 
         const players = playersResult.records.map((record) => record.p);
-        console.log(`Found ${players.length} players for this account`);
-
-        // Log player IDs for debugging
-        players.forEach((player) => {
-          if (player && player.properties) {
-            console.log(
-              `Found player: ${player.properties.name} (ID: ${player.properties.playerId})`
-            );
-          }
-        });
 
         // Optimized unified query for all players using CALL blocks
         if (
@@ -326,9 +297,6 @@ const apiService = {
             accountEventsResult.records[0].totalEventCount > 0) ||
           true
         ) {
-          // Force this path for now
-          console.log("Using unified query approach for all players");
-
           query = `
 // First match all players for this account
 MATCH (p:Player {account: $account})
@@ -405,13 +373,10 @@ CALL {
           const result = await apiService.executeQuery(query, params);
 
           if (!result.records || result.records.length === 0) {
-            console.log("No data found from unified query approach");
             // Return just player nodes as before
             // Create safe player nodes with proper handling based on Neo4j response format
             const safePlayerNodes = [];
             players.forEach((player) => {
-              console.log("Processing player:", player);
-
               // Check if player data is directly on the player object (not in properties)
               if (player && player.playerId) {
                 safePlayerNodes.push({
@@ -441,11 +406,6 @@ CALL {
                     ? player.identity.low.toString()
                     : null,
                 });
-              } else {
-                console.log(
-                  "Warning: Found player with missing playerId",
-                  player
-                );
               }
             });
 
@@ -455,8 +415,6 @@ CALL {
             };
           }
 
-          // Process the result directly with our existing function
-          console.log("Processing unified query result");
           return processGraphData(result.records[0]);
         }
       }
@@ -472,8 +430,6 @@ CALL {
 // This function ensures events are only connected to their correct player
 
 function processGraphData(record, specificPlayerId = null) {
-  console.log("Processing graph data", record);
-
   // Helper function to clean label (remove leading colon)
   function cleanLabel(label) {
     if (typeof label === "string" && label.startsWith(":")) {
@@ -488,11 +444,6 @@ function processGraphData(record, specificPlayerId = null) {
   const entities = record.entities || [];
   const relationships = record.relationships || [];
 
-  // Debugging
-  console.log(
-    `Found: ${players.length} players, ${events.length} events, ${entities.length} entities, ${relationships.length} relationships`
-  );
-
   // Sample some events to understand what we're getting
   if (events.length > 0) {
     const eventTypes = new Set();
@@ -501,7 +452,6 @@ function processGraphData(record, specificPlayerId = null) {
         eventTypes.add(event.properties.eventType);
       }
     });
-    console.log("Event types in data:", Array.from(eventTypes));
   }
 
   // Color mapping based on legend
@@ -540,7 +490,6 @@ function processGraphData(record, specificPlayerId = null) {
   players.forEach((player) => {
     // Check if player has the necessary properties
     if (!player || !player.properties || !player.properties.playerId) {
-      console.log("Skipping player due to missing properties:", player);
       return;
     }
 
@@ -630,10 +579,6 @@ function processGraphData(record, specificPlayerId = null) {
       eventToPlayerMap.get(sourceNeo4jId).add(playerId);
     }
   });
-
-  console.log(
-    `Built event-player map with ${eventToPlayerMap.size} events mapped to their players`
-  );
 
   // Add events to nodes with proper labeling
   events.forEach((event) => {
@@ -1037,10 +982,6 @@ function processGraphData(record, specificPlayerId = null) {
 
     // Skip if we can't determine source or target
     if (!sourceNeo4jId || !targetNeo4jId) {
-      console.log(
-        "Skipping relationship due to missing source or target:",
-        rel
-      );
       return;
     }
 
@@ -1119,10 +1060,6 @@ function processGraphData(record, specificPlayerId = null) {
         // Add any properties from the relationship
         properties: relProps,
       });
-    } else {
-      console.log(
-        `Missing nodes for relationship: ${relType}, source=${sourceNeo4jId}, target=${targetNeo4jId}`
-      );
     }
   });
 
@@ -1220,10 +1157,6 @@ function processGraphData(record, specificPlayerId = null) {
       }
     });
   }
-
-  console.log(
-    `Prepared graph with ${nodes.length} nodes and ${links.length} links`
-  );
 
   return {
     nodes,

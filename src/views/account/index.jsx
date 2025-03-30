@@ -71,8 +71,6 @@ export default function Account() {
 
         const accountInfo = await apiService.getAccountData(userId);
 
-        console.log(accountInfo);
-
         setAccountData(accountInfo);
 
         // Fetch players data from Neo4j
