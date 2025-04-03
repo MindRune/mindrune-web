@@ -141,6 +141,175 @@ const apiService = {
     }
   },
 
+  retrieveRelevantInteractions: async (account, playerId, message = "") => {
+    try {
+      // First try to fetch from ConversationMemory (the new approach)
+      const memoryQuery = `
+        MATCH (m:ConversationMemory)
+        WHERE m.account = $account
+          ${playerId ? "AND m.conversationId = $conversationId" : ""}
+          AND m.type IN ['human', 'ai']
+        RETURN 
+          m.timestamp as timestamp,
+          m.content as content,
+          m.type as type,
+          CASE WHEN m.type = 'human' THEN 'userQuery' ELSE 'agentResponse' END as role
+        ORDER BY m.timestamp DESC
+        LIMIT 20
+      `;
+
+      const memoryParams = {
+        account,
+        conversationId: playerId ? `${account}:${playerId}` : account,
+      };
+
+      let result = await apiService.executeQuery(memoryQuery, memoryParams);
+
+      // If we found conversation history in the new format
+      if (result.records && result.records.length > 0) {
+        // Group records by pairs (human message + AI response)
+        const conversations = [];
+        let currentPair = {};
+
+        // Sort by timestamp (oldest first)
+        const records = result.records.sort((a, b) => {
+          return new Date(a.timestamp) - new Date(b.timestamp);
+        });
+
+        // Group into conversation pairs
+        for (const record of records) {
+          const role = record.role;
+          const content = record.content;
+
+          if (role === "userQuery") {
+            currentPair = { userQuery: content };
+          } else if (role === "agentResponse") {
+            if (currentPair.userQuery) {
+              currentPair.agentResponse = content;
+              currentPair.timestamp = record.timestamp;
+              conversations.push({ ...currentPair });
+              currentPair = {};
+            }
+          }
+        }
+
+        // Sort conversations by timestamp, newest first
+        return conversations.sort(
+          (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
+        );
+      }
+
+      // Fallback to the old approach if we don't find data in the new format
+      const promptQuery = `
+        MATCH (a:Account {account: $account})<-[:BELONGS_TO]-(prompt:Prompt)
+        WHERE prompt.success = true 
+          ${playerId ? "AND prompt.playerId = $playerId" : ""}
+        RETURN 
+          prompt.userQuery as userQuery, 
+          prompt.agentResponse as agentResponse, 
+          prompt.cypherQuery as cypherQuery, 
+          prompt.timestamp as timestamp,
+          prompt.wasHelpful as wasHelpful
+        ORDER BY prompt.timestamp DESC
+        LIMIT 10
+      `;
+
+      const promptParams = {
+        account,
+        playerId,
+      };
+
+      result = await apiService.executeQuery(promptQuery, promptParams);
+
+      return result.records.map((record) => ({
+        userQuery: record.userQuery,
+        agentResponse: record.agentResponse,
+        cypherQuery: record.cypherQuery,
+        timestamp: record.timestamp,
+        wasHelpful: record.wasHelpful,
+      }));
+    } catch (error) {
+      console.error("Error retrieving conversation history:", error);
+      return [];
+    }
+  },
+  learnFromFeedback: async (
+    promptUuid,
+    wasHelpful,
+    userQuery,
+    agentResponse
+  ) => {
+    try {
+      // Execute a query through our API to update the Prompt node
+      const feedbackQuery = `
+        MATCH (e:Prompt {uuid: $promptUuid})
+        SET e.wasHelpful = $wasHelpful
+        RETURN e.cypherQuery, e.userQuery, e.agentResponse
+      `;
+
+      const feedbackParams = {
+        promptUuid,
+        wasHelpful,
+      };
+
+      // Update the Prompt node with feedback
+      const result = await apiService.executeQuery(
+        feedbackQuery,
+        feedbackParams
+      );
+
+      // If this is a new prompt that doesn't exist in the database yet
+      if (result.records.length === 0 && userQuery && agentResponse) {
+        // Create a reference to this conversation in the ConversationMemory nodes
+        const memoryQuery = `
+          MATCH (p:Prompt {uuid: $promptUuid})
+          WITH p
+          MERGE (m:ConversationMemory {
+            id: $memoryId,
+            conversationId: $conversationId,
+            account: $account,
+            type: "feedback",
+            content: $content,
+            timestamp: datetime(),
+            wasHelpful: $wasHelpful
+          })
+          RETURN m.id as id
+        `;
+
+        // Extract account from promptUuid if possible, otherwise use a default
+        const account = promptUuid.split("_")[0] || "unknown-account";
+        // Get playerId from the promptUuid if available
+        const playerId = promptUuid.split("_")[1] || null;
+
+        const memoryParams = {
+          promptUuid,
+          memoryId: `feedback-${promptUuid}`,
+          conversationId: playerId ? `${account}:${playerId}` : account,
+          account,
+          playerId,
+          content: JSON.stringify({
+            userQuery,
+            agentResponse,
+            wasHelpful,
+          }),
+          wasHelpful,
+        };
+
+        await apiService.executeQuery(memoryQuery, memoryParams);
+      }
+
+      console.log(
+        `Feedback recorded for prompt ${promptUuid}: ${
+          wasHelpful ? "helpful" : "not helpful"
+        }`
+      );
+      return result;
+    } catch (error) {
+      console.error("Error learning from feedback:", error);
+      throw error;
+    }
+  },
+
   getGraphData: async (userId, playerId = null) => {
     try {
       let query;
@@ -171,66 +340,81 @@ const apiService = {
         // Modified query to better match the multi-player approach and capture all player nodes with no event limit
         query = `
         // First match the specific player
-        MATCH (p:Player {account: $account, playerId: $playerId})
-        
-        // Use CALL blocks for better parallel execution
-        CALL {
-          WITH p
-          
-          // Collect ALL incoming relationships
-          CALL {
-            WITH p
-            MATCH (e)-[r]->(p)
-            // For hit splats, ensure the targetPlayerId matches to prevent cross-player hits
-            WHERE NOT (e:HitSplat AND e.direction = "incoming") OR e.targetPlayerId = p.playerId
-            RETURN collect(DISTINCT e) AS incoming_events
-          }
-          
-          // Collect ALL outgoing relationships
-          CALL {
-            WITH p
-            MATCH (p)-[r]->(e)
-            RETURN collect(DISTINCT e) AS outgoing_events
-          }
-          
-          WITH p, incoming_events + outgoing_events AS player_events
-          RETURN player_events AS limited_events
-        }
-        
-        // Collect events with the original player
-        WITH p, limited_events
-        
-        // Collect players and events
-        WITH collect({player: p, events: limited_events}) AS player_data
-        
-        // Process relationships more efficiently using CALL blocks
-        CALL {
-          WITH player_data
-          UNWIND player_data AS pd
-          UNWIND pd.events AS event
-          WITH collect(DISTINCT pd.player) AS players, collect(DISTINCT event) AS events
-          
-          // Use parallel CALL blocks for relationship collection
-          CALL {
-            WITH events
-            UNWIND events AS e
-            MATCH (e)-[r1]->(n1)
-            WHERE NOT type(r1) = "PART_OF"
-            RETURN collect(DISTINCT n1) AS out_entities, collect(DISTINCT r1) AS out_rels
-          }
-          
-          CALL {
-            WITH events, players
-            UNWIND events AS e
-            MATCH (n2)-[r2]->(e)
-            WHERE n2:Player OR NOT any(p IN players WHERE n2.playerId = p.playerId)
-            RETURN collect(DISTINCT n2) AS in_entities, collect(DISTINCT r2) AS in_rels
-          }
-          
-          RETURN players, events, out_entities + in_entities AS entities, out_rels + in_rels AS relationships
-        }
-        
-        RETURN players, events, entities, relationships
+MATCH (p:Player {account: $account, playerId: $playerId})
+
+// Use CALL blocks for better parallel execution
+CALL {
+  WITH p
+  
+  // Collect ALL incoming relationships
+  CALL {
+    WITH p
+    MATCH (e)-[r]->(p)
+    // For hit splats, ensure the targetPlayerId matches to prevent cross-player hits
+    WHERE NOT (e:HitSplat AND e.direction = "incoming") OR e.targetPlayerId = p.playerId OR type(r) IN ["PERFORMED_BY", "GAINED_BY", "RECEIVED_BY", "TARGETED"]
+    RETURN collect(DISTINCT e) AS incoming_events
+  }
+  
+  // Collect ALL outgoing relationships
+  CALL {
+    WITH p
+    MATCH (p)-[r]->(e)
+    RETURN collect(DISTINCT e) AS outgoing_events
+  }
+  
+  WITH p, incoming_events + outgoing_events AS player_events
+  RETURN player_events AS limited_events
+}
+
+// Collect events with the original player
+WITH p, limited_events
+
+// Collect players and events
+WITH collect({player: p, events: limited_events}) AS player_data
+
+// Process relationships more efficiently using CALL blocks
+CALL {
+  WITH player_data
+  UNWIND player_data AS pd
+  UNWIND pd.events AS event
+  WITH collect(DISTINCT pd.player) AS players, collect(DISTINCT event) AS events
+  
+  // Use parallel CALL blocks for relationship collection
+  // First, specifically collect all afflictions and their relationships to events
+  CALL {
+    WITH events
+    UNWIND events AS e
+    // Match any Affliction nodes that might be related to these events
+    // This is especially important for Poison HitSplats
+    OPTIONAL MATCH (aff:Affliction)-[r_aff]->(e)
+    WHERE e:HitSplat AND e.damageType IN ["Poison", "Venom", "Disease"]
+    RETURN collect(DISTINCT aff) AS afflictions, collect(DISTINCT r_aff) AS affliction_rels
+  }
+  
+  // Then collect the normal outgoing relationships
+  CALL {
+    WITH events
+    UNWIND events AS e
+    MATCH (e)-[r1]->(n1)
+    WHERE NOT type(r1) = "PART_OF"
+    RETURN collect(DISTINCT n1) AS out_entities, collect(DISTINCT r1) AS out_rels
+  }
+  
+  // Collect incoming relationships
+  CALL {
+    WITH events, players
+    UNWIND events AS e
+    MATCH (n2)-[r2]->(e)
+    WHERE n2:Player OR NOT any(p IN players WHERE n2.playerId = p.playerId)
+    RETURN collect(DISTINCT n2) AS in_entities, collect(DISTINCT r2) AS in_rels
+  }
+  
+  RETURN players, events, 
+         afflictions + out_entities + in_entities AS entities, 
+         affliction_rels + out_rels + in_rels AS relationships
+}
+
+RETURN players, events, entities, relationships
         `;
 
         const result = await apiService.executeQuery(query, params);
@@ -316,7 +500,7 @@ CALL {
     WHERE type(r) IN ["PERFORMED_BY", "GAINED_BY", "RECEIVED_BY", "TARGETED"]
     WITH e, p, r
     // For hit splats, ensure the targetPlayerId matches
-    WHERE NOT (e:HitSplat AND e.direction = "incoming") OR e.targetPlayerId = p.playerId
+    WHERE NOT (e:HitSplat AND e.direction = "incoming") OR e.targetPlayerId = p.playerId  OR type(r) IN ["PERFORMED_BY", "GAINED_BY", "RECEIVED_BY", "TARGETED"]
     RETURN collect(DISTINCT e) AS in_events
   }
   
@@ -423,11 +607,91 @@ CALL {
       throw error;
     }
   },
-};
+  processAgentMessage: async ({ message, account, playerId, playerName }) => {
+    try {
+      // Use apiService instead of this
+      let context = await apiService.retrieveRelevantInteractions(
+        account,
+        message
+      );
+      context = context.map((interaction) => ({
+        query: interaction.userQuery,
+        response: interaction.agentResponse,
+        cypherQuery: interaction.cypherQuery,
+        timestamp: interaction.timestamp,
+      }));
 
-// Comprehensive function to process graph data from Neo4j
-// Modified processGraphData function to handle multi-player properly
-// This function ensures events are only connected to their correct player
+      // Create the request body based on available data
+      const requestBody = {
+        message,
+        account,
+        context,
+      };
+
+      // Only include player data if a specific player was selected
+      if (playerId) {
+        requestBody.playerId = playerId;
+        requestBody.playerName = playerName;
+      }
+
+      const response = await axios.post(
+        `${process.env.REACT_APP_API_HOST}/agent`,
+        requestBody,
+        {
+          headers: apiService.getAuthHeaders(),
+        }
+      );
+
+      console.log(response);
+      return response.data;
+    } catch (error) {
+      console.error("Error processing agent message:", error);
+
+      // Also fix this instance of "this"
+      let context = await apiService.retrieveRelevantInteractions(
+        account,
+        message
+      );
+      context = context.map((interaction) => ({
+        query: interaction.userQuery,
+        response: interaction.agentResponse,
+        cypherQuery: interaction.cypherQuery,
+        timestamp: interaction.timestamp,
+      }));
+
+      // Handle token refresh if unauthorized
+      if (error.response && error.response.status === 401) {
+        const refreshed = await apiService.refreshToken();
+        if (refreshed) {
+          // Create the retry request body
+          const retryRequestBody = {
+            message,
+            account,
+            context,
+          };
+
+          // Only include player data if a specific player was selected
+          if (playerId) {
+            retryRequestBody.playerId = playerId;
+            retryRequestBody.playerName = playerName;
+          }
+
+          // Retry the request with the new token
+          const retryResponse = await axios.post(
+            `${process.env.REACT_APP_API_HOST}/agent`,
+            retryRequestBody,
+            {
+              headers: apiService.getAuthHeaders(),
+            }
+          );
+          return retryResponse.data;
+        }
+      }
+
+      throw error;
+    }
+  },
+};
 
 function processGraphData(record, specificPlayerId = null) {
   // Helper function to clean label (remove leading colon)

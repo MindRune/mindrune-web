@@ -196,7 +196,11 @@ export default function Account() {
             {/* Right Card - AI Chat (Takes 4 of 12 columns) */}
 
             <GridItem colSpan={{ base: 12, md: 4 }}>
-              <AIChatComponent />
+              <AIChatComponent
+                userId={userId}
+                players={players}
+                selectedPlayerId={selectedPlayerId ? selectedPlayerId : null}
+              />
             </GridItem>
           </SimpleGrid>
         </Box>
