@@ -233,22 +233,19 @@ const apiService = {
       return [];
     }
   },
-  learnFromFeedback: async (
-    promptUuid,
-    wasHelpful,
-    userQuery,
-    agentResponse
-  ) => {
+  learnFromFeedback: async (id, wasHelpful, userQuery, agentResponse) => {
     try {
       // Execute a query through our API to update the Prompt node
       const feedbackQuery = `
-        MATCH (e:Prompt {uuid: $promptUuid})
+        MATCH (e:ConversationMemory {id: $id})
+        WHERE e.account = $account
         SET e.wasHelpful = $wasHelpful
         RETURN e.cypherQuery, e.userQuery, e.agentResponse
       `;
 
+      console.log(id);
       const feedbackParams = {
-        promptUuid,
+        id,
         wasHelpful,
       };
 
@@ -258,48 +255,8 @@ const apiService = {
         feedbackParams
       );
 
-      // If this is a new prompt that doesn't exist in the database yet
-      if (result.records.length === 0 && userQuery && agentResponse) {
-        // Create a reference to this conversation in the ConversationMemory nodes
-        const memoryQuery = `
-          MATCH (p:Prompt {uuid: $promptUuid})
-          WITH p
-          MERGE (m:ConversationMemory {
-            id: $memoryId,
-            conversationId: $conversationId,
-            account: $account,
-            type: "feedback",
-            content: $content,
-            timestamp: datetime(),
-            wasHelpful: $wasHelpful
-          })
-          RETURN m.id as id
-        `;
-
-        // Extract account from promptUuid if possible, otherwise use a default
-        const account = promptUuid.split("_")[0] || "unknown-account";
-        // Get playerId from the promptUuid if available
-        const playerId = promptUuid.split("_")[1] || null;
-
-        const memoryParams = {
-          promptUuid,
-          memoryId: `feedback-${promptUuid}`,
-          conversationId: playerId ? `${account}:${playerId}` : account,
-          account,
-          playerId,
-          content: JSON.stringify({
-            userQuery,
-            agentResponse,
-            wasHelpful,
-          }),
-          wasHelpful,
-        };
-
-        await apiService.executeQuery(memoryQuery, memoryParams);
-      }
-
       console.log(
-        `Feedback recorded for prompt ${promptUuid}: ${
+        `Feedback recorded for prompt ${id}: ${
           wasHelpful ? "helpful" : "not helpful"
         }`
       );
@@ -307,6 +264,51 @@ const apiService = {
     } catch (error) {
       console.error("Error learning from feedback:", error);
       throw error;
+    }
+  },
+
+  retrievePastConversations: async (account, playerId = null, limit = 50) => {
+    try {
+      const memoryQuery = `
+        MATCH (m:ConversationMemory)
+        WHERE m.account = $account
+          AND m.role IN ['human', 'ai']
+        OPTIONAL MATCH (m)-[:HAS_QUERY_ATTEMPT]->(qa:QueryAttempt)
+        WITH m, qa
+        ORDER BY m.timestamp ASC, qa.timestamp DESC
+        WITH m, collect(qa)[0] as lastQueryAttempt
+        RETURN 
+          m.timestamp as timestamp,
+          m.content as content,
+          m.role as type,
+          m.id as id,
+          m.wasHelpful as wasHelpful,
+          lastQueryAttempt.query as query
+        ORDER BY m.timestamp ASC
+        LIMIT 100
+      `;
+
+      const memoryParams = {
+        account,
+        conversationId: playerId ? `${account}:${playerId}` : account,
+        limit: Number(limit),
+      };
+
+      const result = await apiService.executeQuery(memoryQuery, memoryParams);
+
+      // Convert records to a clean conversation array
+      return result.records.map((record) => ({
+        id: record.id,
+        timestamp: record.timestamp,
+        content: record.content,
+        role: record.type === "human" ? "user" : "assistant",
+        messageId: record.messageId,
+        wasHelpful: record.wasHelpful !== undefined ? record.wasHelpful : null,
+        query: record.query,
+      }));
+    } catch (error) {
+      console.error("Error retrieving past conversations:", error);
+      return [];
     }
   },
 
@@ -732,6 +734,7 @@ function processGraphData(record, specificPlayerId = null) {
     "Combat Achievement": "#e07ede", // "Cmb Achieve" in legend
     Skill: "#027a34",
     Character: "#8B4513",
+    Monster: "#8B4513",
     Location: "#CBD5E0",
     Reward: "#8E44AD",
     Affliction: "#03fc88",
@@ -1109,6 +1112,11 @@ function processGraphData(record, specificPlayerId = null) {
       label = "Character";
       name = props.name || "Unknown Character";
       color = colorMap["Character"];
+    } else if (cleanedEntityLabels.includes("Monster")) {
+      nodeId = `char-${props.name}`;
+      label = "Monster";
+      name = props.name || "Unknown Monster";
+      color = colorMap["Monster"];
     } else if (cleanedEntityLabels.includes("Location")) {
       nodeId = `loc-${props.x}-${props.y}-${props.plane}`;
       label = "Location";

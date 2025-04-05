@@ -72,7 +72,7 @@ const Neo4jGraph = ({ userId, playerId }) => {
 
     { label: "Skill", color: "#027a34" },
 
-    { label: "Character", color: "#8B4513" },
+    { label: "Monster/Character", color: "#8B4513" },
 
     { label: "Location", color: "#CBD5E0" },
 
@@ -96,13 +96,13 @@ const Neo4jGraph = ({ userId, playerId }) => {
       nodeMap.set(node.id, node);
     });
 
-    // Map to track Character/Affliction nodes by name
+    // Map to track Monster/Affliction nodes by name
 
-    const charactersByName = new Map();
+    const monstersByName = new Map();
 
     data.nodes.forEach((node) => {
-      if (node.label === "Character" || node.label === "Affliction") {
-        charactersByName.set(node.name, node);
+      if (node.label === "Monster" || node.label === "Affliction") {
+        monstersByName.set(node.name, node);
       }
     });
 
@@ -128,7 +128,7 @@ const Neo4jGraph = ({ userId, playerId }) => {
       // Any entity that PERFORMs or CAUSEs a Combat node could be a source
 
       if (
-        (sourceNode.label === "Character" ||
+        (sourceNode.label === "Monster" ||
           sourceNode.label === "Affliction" ||
           sourceNode.label === "Player") &&
         targetNode.label === "Combat" &&
@@ -147,7 +147,7 @@ const Neo4jGraph = ({ userId, playerId }) => {
 
       if (
         sourceNode.label === "Combat" &&
-        (targetNode.label === "Character" ||
+        (targetNode.label === "Monster" ||
           targetNode.label === "Affliction" ||
           targetNode.label === "Player") &&
         link.type === "TARGETED"
@@ -227,7 +227,7 @@ const Neo4jGraph = ({ userId, playerId }) => {
       }
     }
 
-    // Create missing links between HitSplats and Characters
+    // Create missing links between HitSplats and Monster
 
     const newLinks = [];
 
@@ -646,8 +646,11 @@ const Neo4jGraph = ({ userId, playerId }) => {
     if (!node || !node.label) return 4;
 
     switch (node.label) {
+      case "Monster":
+        return 1;
+
       case "Character":
-        return 1; // Largest
+        return 1;
 
       case "Player":
         return 2;

@@ -31,7 +31,7 @@ const AIChatComponent = ({ userId, players, selectedPlayerId }) => {
   ]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [promptIds, setPromptIds] = useState({}); // Store mapping between message IDs and prompt UUIDs
+  const [promptIds, setPromptIds] = useState({});
   const messagesEndRef = useRef(null);
   const toast = useToast();
 
@@ -40,6 +40,59 @@ const AIChatComponent = ({ userId, players, selectedPlayerId }) => {
     (player) => player.id === selectedPlayerId
   );
   const selectedPlayerName = selectedPlayer?.name;
+
+  // Fetch past conversations on component mount or when userId/selectedPlayerId changes
+  useEffect(() => {
+    const fetchPastConversations = async () => {
+      try {
+        // Fetch conversations based on selected player or account-wide
+        const pastConversations = await apiService.retrievePastConversations(
+          userId,
+          selectedPlayerId,
+          50 // limit to last 50 messages
+        );
+
+        // If we have past conversations, convert them to our message format
+        if (pastConversations.length > 0) {
+          const formattedMessages = pastConversations.map((conv) => ({
+            id: conv.id,
+            type: conv.role === "user" ? MESSAGE_TYPES.USER : MESSAGE_TYPES.AI,
+            content: conv.content,
+            timestamp: new Date(conv.timestamp),
+            wasHelpful: conv.wasHelpful, // Add this to make wasHelpful available
+            query: conv.query, // Add this to include the query for AI messages
+          }));
+
+          // If no existing messages or just the default greeting
+          if (messages.length <= 1) {
+            setMessages(formattedMessages);
+          } else {
+            // Append past conversations to existing messages
+            setMessages((prev) => {
+              // Remove the default greeting if we're adding past conversations
+              const filteredPrev = prev.filter(
+                (msg) =>
+                  msg.content !==
+                  "Hello! I'm MindRune AI. How can I help with your gameplay today?"
+              );
+              return [...formattedMessages, ...filteredPrev];
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching past conversations:", error);
+        toast({
+          title: "Conversation History",
+          description: "Unable to retrieve past conversations.",
+          status: "warning",
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+    };
+
+    fetchPastConversations();
+  }, [userId, selectedPlayerId]);
 
   // Auto scroll to bottom of messages
   useEffect(() => {
@@ -112,10 +165,10 @@ const AIChatComponent = ({ userId, players, selectedPlayerId }) => {
       const aiResponse = data.response || "I couldn't process your request.";
 
       // Get the promptUuid from the response
-      const promptUuid = data.promptUuid || null;
+      const promptUuid = data.id || null;
 
       // Get the cypherQuery directly from the response
-      const cypherQuery = data.cypherQuery || null;
+      const cypherQuery = data.query || null;
 
       const aiMessageId = uuidv4();
 
@@ -146,10 +199,11 @@ const AIChatComponent = ({ userId, players, selectedPlayerId }) => {
         setMessages((prev) => [
           ...prev,
           {
-            id: uuidv4(),
+            id: data.id,
             type: MESSAGE_TYPES.QUERY,
             content: cypherQuery,
             timestamp: new Date(),
+            query: cypherQuery,
           },
         ]);
       }
